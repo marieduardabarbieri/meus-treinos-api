@@ -91,29 +91,64 @@ app.withTypeProvider<ZodTypeProvider>().route({
     }
   },
 })
+
 app.withTypeProvider<ZodTypeProvider>().route({
   method: 'POST',
   url: '/workout-plans',
   schema: {
-    name: z.string().trim().min(1, 'Nome é obrigatório'),
-    workoutDays: z.array(
-      z.object({
+    body: z.object({
+      name: z.string().trim().min(1, 'Nome é obrigatório'),
+      workoutDays: z.array(
+        z.object({
+          name: z.string().trim().min(1, 'Nome é obrigatório'),
+          weekDay: z.enum(WeekDay),
+          isRest: z.boolean().default(false),
+          estimatedDurationInSeconds: z.number().min(1, 'Duração estimada deve ser maior que 0'),
+          exercises: z.array(
+            z.object({
+              order: z.number().min(0, 'Ordem deve ser não negativa'),
+              name: z.string().trim().min(1, 'Nome é obrigatório'),
+              sets: z.number().min(1, 'Séries devem ser maiores que 0'),
+              reps: z.number().min(1, 'Repetições devem ser maiores que 0'),
+              restTimeInSeconds: z.number().min(0, 'Tempo de descanso não pode ser negativo'),
+            })
+          ),
+        })
+      ),
+    }),
+    response: {
+      201: z.object({
+        id: z.uuid(),
         name: z.string().trim().min(1, 'Nome é obrigatório'),
-        weekDay: z.enum(WeekDay),
-        isRest: z.boolean().default(false),
-        estimatedDurationInSeconds: z.number().min(1, 'Duração estimada deve ser maior que 0'),
-        exercises: z.array(
+        workoutDays: z.array(
           z.object({
-            order: z.number().min(0, 'Ordem deve ser não negativa'),
             name: z.string().trim().min(1, 'Nome é obrigatório'),
-            sets: z.number().min(1, 'Séries devem ser maiores que 0'),
-            reps: z.number().min(1, 'Repetições devem ser maiores que 0'),
-            restTimeInSeconds: z.number().min(0, 'Tempo de descanso não pode ser negativo'),
+            weekDay: z.enum(WeekDay),
+            isRest: z.boolean().default(false),
+            estimatedDurationInSeconds: z.number().min(1, 'Duração estimada deve ser maior que 0'),
+            exercises: z.array(
+              z.object({
+                order: z.number().min(0, 'Ordem deve ser não negativa'),
+                name: z.string().trim().min(1, 'Nome é obrigatório'),
+                sets: z.number().min(1, 'Sets devem ser maiores que 0'),
+                reps: z.number().min(1, 'Reps devem ser maiores que 0'),
+                restTimeInSeconds: z.number().min(0, 'Tempo de descanso não pode ser negativo'),
+              })
+            ),
           })
         ),
-      })
-    ),
+      }),
+      400: z.object({
+        error: z.string(),
+        code: z.string(),
+      }),
+      401: z.object({
+        error: z.string(),
+        code: z.string(),
+      }),
+    },
   },
+  handler: async (request, reply) => {},
 })
 
 app.route({
